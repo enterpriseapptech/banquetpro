@@ -21,7 +21,7 @@ export type ButtonVariant =
   | 'icon'
   | 'fab'
 
-export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'small' | 'medium' | 'large'
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'small' | 'medium' | 'middle' | 'large'
 export type ButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'full' | 'pill'
 export type ColorScheme = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'neutral'
 export type LoadingPosition = 'start' | 'end' | 'center' | 'left' | 'right'
@@ -118,6 +118,7 @@ const normalizeSize = (size: ButtonSize = 'md'): 'xs' | 'sm' | 'md' | 'lg' | 'xl
     case 'small':
       return 'sm'
     case 'medium':
+    case 'middle':
       return 'md'
     case 'large':
       return 'lg'
@@ -384,7 +385,7 @@ export const Button = forwardRef<HTMLButtonElement, BaseButtonProps>((props, ref
       {!isActualLoading && mainIcon && isIconOnly && renderIconNode(mainIcon, onIconPress, 'main-icon')}
 
       {content && (
-        <span className={cn('truncate', textClassName)} style={textStyle}>
+        <span className={cn('inline-flex items-center gap-1.5 truncate', textClassName)} style={textStyle}>
           {isActualLoading && loadingText ? loadingText : content}
         </span>
       )}
