@@ -105,7 +105,7 @@ export const Login: React.FC = () => {
       })
 
       setTimeout(() => {
-        navigate('/verify-email')
+        navigate('/dashboard')
       }, 1200)
     } catch (err) {
       console.error(err)
