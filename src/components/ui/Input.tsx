@@ -1,10 +1,5 @@
-import React, { forwardRef } from 'react'
-import { Input as AntInput, InputNumber as AntInputNumber } from 'antd'
-import type { InputProps as AntInputProps, InputRef } from 'antd/es/input'
-import type { TextAreaProps as AntTextAreaProps, SearchProps as AntSearchProps } from 'antd/es/input'
-import type { InputNumberProps as AntInputNumberProps } from 'antd/es/input-number'
-import { Loader2, XCircle } from 'lucide-react'
-import { formatCurrency, parseCurrency, formatNaira, parseNaira } from '@/utils'
+import React, { forwardRef, useState } from 'react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export type InputNumberRef = HTMLInputElement
 export type LabelPosition = 'above' | 'beside' | 'floating'
@@ -63,8 +58,7 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   label,
   labelPosition = 'above',
   required,
-  requiredIndicator = <span className="text-red-500 ml-1">*</span>,
-  optionalIndicator = <span className="text-gray-400 text-xs ml-1">(Optional)</span>,
+  requiredIndicator = <span className="text-red-500 font-bold ml-0.5">*</span>,
   hideLabel = false,
   helperText,
   error,
@@ -83,7 +77,9 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   renderHelperText,
   children,
 }) => {
-  const activeError = typeof error === 'string' ? error : errorMessage
+  const activeError = typeof error === 'string'
+    ? error
+    : (error && errorMessage ? errorMessage : undefined)
   const isBeside = labelPosition === 'beside'
 
   return (
@@ -94,21 +90,22 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
       {label && !hideLabel && (
         <label
           htmlFor={id}
-          className={`text-sm font-medium text-gray-700 dark:text-gray-200 select-none ${isBeside ? 'w-1/3 min-w-[120px]' : 'w-full'
-            } ${labelClassName}`}
+          className={`text-sm font-bold text-gray-900 align-middle font-['Montserrat'] select-none block ${
+            isBeside ? 'w-1/3 min-w-[120px]' : 'w-full'
+          } ${labelClassName}`}
           style={labelStyle}
         >
           {label}
-          {required ? requiredIndicator : optionalIndicator}
+          {required ? requiredIndicator : null}
         </label>
       )}
 
       <div className={`w-full ${isBeside ? 'flex-1' : ''}`}>
         {children}
 
-        <div className="mt-1 space-y-1">
-          {activeError && (
-            renderError ? (
+        {activeError ? (
+          <div className="mt-1">
+            {renderError ? (
               renderError(activeError)
             ) : (
               <p
@@ -117,54 +114,53 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
               >
                 {activeError}
               </p>
-            )
-          )}
+            )}
+          </div>
+        ) : null}
 
-          {!activeError && warningMessage && (
-            <p className="text-xs text-amber-500 font-medium">{warningMessage}</p>
-          )}
+        {!activeError && warningMessage && (
+          <p className="text-xs text-amber-500 font-medium mt-1">{warningMessage}</p>
+        )}
 
-          {!activeError && successMessage && (
-            <p className="text-xs text-emerald-600 font-medium">{successMessage}</p>
-          )}
+        {!activeError && successMessage && (
+          <p className="text-xs text-emerald-600 font-medium mt-1">{successMessage}</p>
+        )}
 
-          {helperText && !activeError && (
-            renderHelperText ? (
+        {helperText && !activeError && (
+          <div className="mt-1">
+            {renderHelperText ? (
               renderHelperText(helperText)
             ) : (
               <p
-                className={`text-xs text-gray-500 dark:text-gray-400 ${helperTextClassName}`}
+                className={`text-xs text-gray-500 ${helperTextClassName}`}
                 style={helperTextStyle}
               >
                 {helperText}
               </p>
-            )
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 export interface TextInputProps
-  extends Omit<AntInputProps, 'size' | 'prefix' | 'suffix' | 'error'>,
-  BaseFieldProps {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'>,
+    BaseFieldProps {
   size?: 'small' | 'middle' | 'large'
   variant?: InputVariant
   inputClassName?: string
   inputStyle?: React.CSSProperties
-  prefixText?: React.ReactNode
-  suffixText?: React.ReactNode
 }
 
-export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
+export const TextInput = forwardRef<HTMLInputElement, TextInputProps>((props, ref) => {
   const {
     id,
     label,
     labelPosition,
     required,
     requiredIndicator,
-    optionalIndicator,
     hideLabel,
     helperText,
     error,
@@ -176,12 +172,8 @@ export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
     onLeftIconPress,
     onRightIconPress,
     loading,
-    clearable,
-    onClear,
     containerClassName,
     containerStyle,
-    wrapperClassName,
-    wrapperStyle,
     labelClassName,
     labelStyle,
     errorClassName,
@@ -190,8 +182,6 @@ export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
     helperTextStyle,
     renderLeftIcon,
     renderRightIcon,
-    renderPrefix,
-    renderSuffix,
     renderError,
     renderHelperText,
     testID,
@@ -200,58 +190,11 @@ export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
     className = '',
     inputClassName = '',
     inputStyle,
-    prefixText,
-    suffixText,
     disabled,
-    allowClear,
-    status,
     ...restProps
   } = props
 
-  const hasError = Boolean(error || errorMessage)
-  const computedStatus = status || (hasError ? 'error' : undefined)
-
-  const prefixNode = (
-    <React.Fragment>
-      {renderPrefix ? (
-        renderPrefix()
-      ) : prefixText ? (
-        <span className="text-gray-500 mr-1.5">{prefixText}</span>
-      ) : null}
-      {renderLeftIcon ? (
-        renderLeftIcon()
-      ) : leftIcon ? (
-        <span
-          className={`mr-2 flex items-center text-gray-400 ${onLeftIconPress ? 'cursor-pointer hover:text-gray-600' : ''}`}
-          onClick={onLeftIconPress}
-        >
-          {leftIcon}
-        </span>
-      ) : null}
-    </React.Fragment>
-  )
-
-  const suffixNode = (
-    <React.Fragment>
-      {loading ? (
-        <Loader2 className="animate-spin text-gray-400 w-4 h-4 ml-1" />
-      ) : renderRightIcon ? (
-        renderRightIcon()
-      ) : rightIcon ? (
-        <span
-          className={`ml-2 flex items-center text-gray-400 ${onRightIconPress ? 'cursor-pointer hover:text-gray-600' : ''}`}
-          onClick={onRightIconPress}
-        >
-          {rightIcon}
-        </span>
-      ) : null}
-      {renderSuffix ? (
-        renderSuffix()
-      ) : suffixText ? (
-        <span className="text-gray-500 ml-1.5">{suffixText}</span>
-      ) : null}
-    </React.Fragment>
-  )
+  const hasError = Boolean(error && errorMessage) || typeof error === 'string'
 
   return (
     <FieldWrapper
@@ -260,7 +203,6 @@ export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
       labelPosition={labelPosition}
       required={required}
       requiredIndicator={requiredIndicator}
-      optionalIndicator={optionalIndicator}
       hideLabel={hideLabel}
       helperText={helperText}
       error={error}
@@ -278,28 +220,54 @@ export const TextInput = forwardRef<InputRef, TextInputProps>((props, ref) => {
       renderError={renderError}
       renderHelperText={renderHelperText}
     >
-      <AntInput
-        ref={ref}
-        id={id}
-        size={size}
-        variant={variant}
-        disabled={disabled || loading}
-        status={computedStatus}
-        prefix={prefixNode}
-        suffix={suffixNode}
-        allowClear={
-          allowClear ||
-          (clearable
-            ? {
-              clearIcon: <XCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />,
-            }
-            : false)
-        }
-        className={`${inputClassName} ${className}`}
-        style={inputStyle}
-        data-testid={testID}
-        {...restProps}
-      />
+      <div className="relative flex items-center w-full">
+        {leftIcon && (
+          <span
+            className={`absolute left-3.5 flex items-center pointer-events-none text-gray-400 z-10 ${
+              onLeftIconPress ? 'cursor-pointer pointer-events-auto hover:text-gray-600' : ''
+            }`}
+            onClick={onLeftIconPress}
+          >
+            {leftIcon}
+          </span>
+        )}
+
+        <input
+          ref={ref}
+          id={id}
+          disabled={disabled || loading}
+          className={`w-full text-sm font-medium text-gray-900 bg-white border rounded-lg outline-none transition-all placeholder:text-gray-400 app-input ${
+            size === 'small' ? 'py-1.5' : size === 'large' ? 'py-3' : 'py-2.5'
+          } ${
+            hasError
+              ? 'border-red-500 text-red-600 focus:border-red-500'
+              : 'border-gray-200 focus:border-[#D6BBFB]'
+          } ${inputClassName} ${className}`}
+          style={{
+            border: hasError ? '1px solid #EF4444' : '1px solid #E4E7EC',
+            paddingLeft: leftIcon ? '40px' : '14px',
+            paddingRight: rightIcon || loading ? '40px' : '14px',
+            ...inputStyle,
+          }}
+          data-testid={testID}
+          {...restProps}
+        />
+
+        {loading ? (
+          <span className="absolute right-3 flex items-center z-10">
+            <Loader2 className="animate-spin text-gray-400 w-4 h-4" />
+          </span>
+        ) : rightIcon ? (
+          <span
+            className={`absolute right-3 flex items-center text-gray-400 z-10 ${
+              onRightIconPress ? 'cursor-pointer hover:text-gray-600' : ''
+            }`}
+            onClick={onRightIconPress}
+          >
+            {rightIcon}
+          </span>
+        ) : null}
+      </div>
     </FieldWrapper>
   )
 })
@@ -310,196 +278,14 @@ export interface PasswordInputProps extends TextInputProps {
   showPasswordToggle?: boolean
 }
 
-export const PasswordInput = forwardRef<InputRef, PasswordInputProps>((props, ref) => {
+export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, ref) => {
+  const [showPassword, setShowPassword] = useState(false)
   const {
     id,
     label,
     labelPosition,
     required,
     requiredIndicator,
-    optionalIndicator,
-    hideLabel,
-    helperText,
-    error,
-    errorMessage,
-    successMessage,
-    warningMessage,
-    containerClassName,
-    containerStyle,
-    labelClassName,
-    labelStyle,
-    errorClassName,
-    errorStyle,
-    helperTextClassName,
-    helperTextStyle,
-    renderError,
-    renderHelperText,
-    testID,
-    size = 'middle',
-    variant = 'outlined',
-    inputClassName = '',
-    inputStyle,
-    disabled,
-    status,
-    ...restProps
-  } = props
-
-  const hasError = Boolean(error || errorMessage)
-  const computedStatus = status || (hasError ? 'error' : undefined)
-
-  return (
-    <FieldWrapper
-      id={id}
-      label={label}
-      labelPosition={labelPosition}
-      required={required}
-      requiredIndicator={requiredIndicator}
-      optionalIndicator={optionalIndicator}
-      hideLabel={hideLabel}
-      helperText={helperText}
-      error={error}
-      errorMessage={errorMessage}
-      successMessage={successMessage}
-      warningMessage={warningMessage}
-      containerClassName={containerClassName}
-      containerStyle={containerStyle}
-      labelClassName={labelClassName}
-      labelStyle={labelStyle}
-      errorClassName={errorClassName}
-      errorStyle={errorStyle}
-      helperTextClassName={helperTextClassName}
-      helperTextStyle={helperTextStyle}
-      renderError={renderError}
-      renderHelperText={renderHelperText}
-    >
-      <AntInput.Password
-        ref={ref}
-        id={id}
-        size={size}
-        variant={variant}
-        disabled={disabled}
-        status={computedStatus}
-        className={`${inputClassName}`}
-        style={inputStyle}
-        data-testid={testID}
-        {...restProps}
-      />
-    </FieldWrapper>
-  )
-})
-
-PasswordInput.displayName = 'PasswordInput'
-
-export interface SearchInputProps
-  extends Omit<AntSearchProps, 'size' | 'error'>,
-  BaseFieldProps {
-  size?: 'small' | 'middle' | 'large'
-  variant?: InputVariant
-  inputClassName?: string
-  inputStyle?: React.CSSProperties
-}
-
-export const SearchInput = forwardRef<InputRef, SearchInputProps>((props, ref) => {
-  const {
-    id,
-    label,
-    labelPosition,
-    required,
-    requiredIndicator,
-    optionalIndicator,
-    hideLabel,
-    helperText,
-    error,
-    errorMessage,
-    successMessage,
-    warningMessage,
-    containerClassName,
-    containerStyle,
-    labelClassName,
-    labelStyle,
-    errorClassName,
-    errorStyle,
-    helperTextClassName,
-    helperTextStyle,
-    renderError,
-    renderHelperText,
-    testID,
-    size = 'middle',
-    variant = 'outlined',
-    inputClassName = '',
-    inputStyle,
-    disabled,
-    loading,
-    status,
-    ...restProps
-  } = props
-
-  const hasError = Boolean(error || errorMessage)
-  const computedStatus = status || (hasError ? 'error' : undefined)
-
-  return (
-    <FieldWrapper
-      id={id}
-      label={label}
-      labelPosition={labelPosition}
-      required={required}
-      requiredIndicator={requiredIndicator}
-      optionalIndicator={optionalIndicator}
-      hideLabel={hideLabel}
-      helperText={helperText}
-      error={error}
-      errorMessage={errorMessage}
-      successMessage={successMessage}
-      warningMessage={warningMessage}
-      containerClassName={containerClassName}
-      containerStyle={containerStyle}
-      labelClassName={labelClassName}
-      labelStyle={labelStyle}
-      errorClassName={errorClassName}
-      errorStyle={errorStyle}
-      helperTextClassName={helperTextClassName}
-      helperTextStyle={helperTextStyle}
-      renderError={renderError}
-      renderHelperText={renderHelperText}
-    >
-      <AntInput.Search
-        ref={ref}
-        id={id}
-        size={size}
-        variant={variant}
-        loading={loading}
-        disabled={disabled || loading}
-        status={computedStatus}
-        className={`${inputClassName}`}
-        style={inputStyle}
-        data-testid={testID}
-        {...restProps}
-      />
-    </FieldWrapper>
-  )
-})
-
-SearchInput.displayName = 'SearchInput'
-
-export interface NumberInputProps<T extends string | number = number>
-  extends Omit<AntInputNumberProps<T>, 'size' | 'prefix' | 'suffix' | 'error'>,
-  BaseFieldProps {
-  size?: 'small' | 'middle' | 'large'
-  variant?: InputVariant
-  currency?: string
-  isNaira?: boolean
-  inputClassName?: string
-  inputStyle?: React.CSSProperties
-}
-
-export const NumberInput = forwardRef<InputNumberRef, NumberInputProps>((props, ref) => {
-  const {
-    id,
-    label,
-    labelPosition,
-    required,
-    requiredIndicator,
-    optionalIndicator,
     hideLabel,
     helperText,
     error,
@@ -507,7 +293,6 @@ export const NumberInput = forwardRef<InputNumberRef, NumberInputProps>((props, 
     successMessage,
     warningMessage,
     leftIcon,
-    rightIcon,
     containerClassName,
     containerStyle,
     labelClassName,
@@ -520,34 +305,16 @@ export const NumberInput = forwardRef<InputNumberRef, NumberInputProps>((props, 
     renderHelperText,
     testID,
     size = 'middle',
-    variant = 'outlined',
-    currency,
-    isNaira,
+    className = '',
     inputClassName = '',
     inputStyle,
     disabled,
-    status,
-    formatter,
-    parser,
+    showPasswordToggle = true,
+    type,
     ...restProps
   } = props
 
-  const hasError = Boolean(error || errorMessage)
-  const computedStatus = status || (hasError ? 'error' : undefined)
-
-  const getFormatter = () => {
-    if (formatter) return formatter
-    if (isNaira) return (val: any) => formatNaira(val)
-    if (currency) return (val: any) => formatCurrency(val, currency)
-    return undefined
-  }
-
-  const getParser = () => {
-    if (parser) return parser
-    if (isNaira) return (val: any) => parseNaira(val)
-    if (currency) return (val: any) => parseCurrency(val, currency)
-    return undefined
-  }
+  const hasError = Boolean(error && errorMessage) || typeof error === 'string'
 
   return (
     <FieldWrapper
@@ -556,7 +323,6 @@ export const NumberInput = forwardRef<InputNumberRef, NumberInputProps>((props, 
       labelPosition={labelPosition}
       required={required}
       requiredIndicator={requiredIndicator}
-      optionalIndicator={optionalIndicator}
       hideLabel={hideLabel}
       helperText={helperText}
       error={error}
@@ -574,44 +340,80 @@ export const NumberInput = forwardRef<InputNumberRef, NumberInputProps>((props, 
       renderError={renderError}
       renderHelperText={renderHelperText}
     >
-      <AntInputNumber
-        ref={ref as any}
-        id={id}
-        size={size}
-        variant={variant}
-        disabled={disabled}
-        status={computedStatus}
-        formatter={getFormatter()}
-        parser={getParser() as any}
-        className={`w-full ${inputClassName}`}
-        style={inputStyle}
-        data-testid={testID}
-        {...restProps}
-      />
+      <div className="relative flex items-center w-full">
+        {leftIcon && (
+          <span className="absolute left-3.5 flex items-center pointer-events-none text-gray-400 z-10">
+            {leftIcon}
+          </span>
+        )}
+
+        <input
+          ref={ref}
+          id={id}
+          type={showPassword ? 'text' : 'password'}
+          disabled={disabled}
+          className={`w-full text-sm font-medium text-gray-900 bg-white border rounded-lg outline-none transition-all placeholder:text-gray-400 app-input ${
+            size === 'small' ? 'py-1.5' : size === 'large' ? 'py-3' : 'py-2.5'
+          } ${
+            hasError
+              ? 'border-red-500 text-red-600 focus:border-red-500'
+              : 'border-gray-200 focus:border-[#D6BBFB]'
+          } ${inputClassName} ${className}`}
+          style={{
+            border: hasError ? '1px solid #EF4444' : '1px solid #E4E7EC',
+            paddingLeft: leftIcon ? '40px' : '14px',
+            paddingRight: showPasswordToggle ? '40px' : '14px',
+            ...inputStyle,
+          }}
+          data-testid={testID}
+          {...restProps}
+        />
+
+        {showPasswordToggle && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer z-10 p-0.5"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        )}
+      </div>
     </FieldWrapper>
   )
 })
 
+PasswordInput.displayName = 'PasswordInput'
+
+export interface SearchInputProps extends TextInputProps {}
+
+export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>((props, ref) => {
+  return <TextInput ref={ref} {...props} />
+})
+
+SearchInput.displayName = 'SearchInput'
+
+export interface NumberInputProps extends TextInputProps {}
+
+export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>((props, ref) => {
+  return <TextInput ref={ref} type="number" {...props} />
+})
+
 NumberInput.displayName = 'NumberInput'
 
-export interface TextAreaInputProps
-  extends Omit<AntTextAreaProps, 'size' | 'error'>,
-  BaseFieldProps {
-  size?: 'small' | 'middle' | 'large'
-  variant?: InputVariant
+export interface TextAreaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, BaseFieldProps {
   inputClassName?: string
   inputStyle?: React.CSSProperties
-  showCharacterCount?: boolean
 }
 
-export const TextAreaInput = forwardRef<any, TextAreaInputProps>((props, ref) => {
+export const TextAreaInput = forwardRef<HTMLTextAreaElement, TextAreaInputProps>((props, ref) => {
   const {
     id,
     label,
     labelPosition,
     required,
     requiredIndicator,
-    optionalIndicator,
     hideLabel,
     helperText,
     error,
@@ -629,21 +431,14 @@ export const TextAreaInput = forwardRef<any, TextAreaInputProps>((props, ref) =>
     renderError,
     renderHelperText,
     testID,
-    size = 'middle',
-    variant = 'outlined',
+    className = '',
     inputClassName = '',
     inputStyle,
     disabled,
-    status,
-    showCharacterCount,
-    showCount,
-    maxLength,
-    rows = 4,
     ...restProps
   } = props
 
-  const hasError = Boolean(error || errorMessage)
-  const computedStatus = status || (hasError ? 'error' : undefined)
+  const hasError = Boolean(error && errorMessage) || typeof error === 'string'
 
   return (
     <FieldWrapper
@@ -652,7 +447,6 @@ export const TextAreaInput = forwardRef<any, TextAreaInputProps>((props, ref) =>
       labelPosition={labelPosition}
       required={required}
       requiredIndicator={requiredIndicator}
-      optionalIndicator={optionalIndicator}
       hideLabel={hideLabel}
       helperText={helperText}
       error={error}
@@ -670,18 +464,19 @@ export const TextAreaInput = forwardRef<any, TextAreaInputProps>((props, ref) =>
       renderError={renderError}
       renderHelperText={renderHelperText}
     >
-      <AntInput.TextArea
+      <textarea
         ref={ref}
         id={id}
-        size={size}
-        variant={variant}
-        rows={rows}
-        maxLength={maxLength}
-        showCount={showCount || showCharacterCount}
         disabled={disabled}
-        status={computedStatus}
-        className={`${inputClassName}`}
-        style={inputStyle}
+        className={`w-full text-sm font-medium text-gray-900 bg-white border rounded-lg outline-none transition-all placeholder:text-gray-400 app-input p-3 ${
+          hasError
+            ? 'border-red-500 text-red-600 focus:border-red-500'
+            : 'border-gray-200 focus:border-[#D6BBFB]'
+        } ${inputClassName} ${className}`}
+        style={{
+          border: hasError ? '1px solid #EF4444' : '1px solid #E4E7EC',
+          ...inputStyle,
+        }}
         data-testid={testID}
         {...restProps}
       />
@@ -690,6 +485,3 @@ export const TextAreaInput = forwardRef<any, TextAreaInputProps>((props, ref) =>
 })
 
 TextAreaInput.displayName = 'TextAreaInput'
-
-export const CustomInput = TextInput
-export default TextInput
