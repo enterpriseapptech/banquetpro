@@ -79,15 +79,15 @@ export const Login: React.FC = () => {
 
       let hasError = false
 
-      if (data.email.toLowerCase() !== REQUIRED_EMAIL) {
-        setCustomEmailError('This email is not registered on our system.')
-        hasError = true
-      }
+      // if (data.email.toLowerCase() !== REQUIRED_EMAIL) {
+      //   setCustomEmailError('This email is not registered on our system.')
+      //   hasError = true
+      // }
 
-      if (data.password !== REQUIRED_PASSWORD) {
-        setCustomPasswordError('You have entered a wrong password')
-        hasError = true
-      }
+      // if (data.password !== REQUIRED_PASSWORD) {
+      //   setCustomPasswordError('You have entered a wrong password')
+      //   hasError = true
+      // }
 
       if (hasError) {
         setAlert({
