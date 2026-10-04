@@ -7,5 +7,4 @@ export * from './StatCard'
 export * from './SummaryCard'
 export * from './DataTable'
 export * from './Modal'
-
-
+export * from './ConfirmModal'
