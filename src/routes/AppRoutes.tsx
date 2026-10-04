@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import('../pages/postlogin/Dashboard'))
 const Subscriptions = lazy(() => import('../pages/postlogin/Subscriptions'))
 const Payments = lazy(() => import('../pages/postlogin/Payments'))
 const Fees = lazy(() => import('../pages/postlogin/Fees'))
+const Providers = lazy(() => import('../pages/postlogin/Providers'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 
 export function AppRoutes() {
@@ -78,6 +79,10 @@ export function AppRoutes() {
             <Route
               path="/fees"
               element={<Fees />}
+            />
+            <Route
+              path="/providers"
+              element={<Providers />}
             />
             <Route
               path="/prelogin/signup"
