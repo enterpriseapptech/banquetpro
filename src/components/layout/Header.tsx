@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navigate = useNavigate()
   const [showNotifications, setShowNotifications] = useState(false)
-  const hoverTimer = useRef<NodeJS.Timeout | null>(null)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSettings = () => {
     if (onSettingsClick) {
