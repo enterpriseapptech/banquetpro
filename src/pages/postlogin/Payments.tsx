@@ -16,13 +16,22 @@ import {
   TransactionItem,
   InvoiceItem,
   RefundItem,
+  DisputeItem,
+  WithdrawalAccountItem,
   MOCK_TRANSACTIONS,
   MOCK_INVOICES,
   MOCK_REFUNDS,
+  MOCK_DISPUTES,
+  MOCK_ACCOUNTS,
 } from '@/utils/paymentsData'
-import { TransactionDetailsModal } from '@/components/payments/TransactionDetailsModal'
-import { InvoiceDetailsModal } from '@/components/payments/InvoiceDetailsModal'
-import { RefundDetailsModal } from '@/components/payments/RefundDetailsModal'
+import {
+  TransactionDetailsModal,
+  InvoiceDetailsModal,
+  RefundDetailsModal,
+  DisputeDetailsModal,
+  RequestWithdrawalModal,
+  ManageAccountsModal,
+} from '@/components/payments'
 
 export const Payments: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'transactions' | 'invoices' | 'refunds' | 'disputes'>('transactions')
@@ -32,6 +41,8 @@ export const Payments: React.FC = () => {
   const [transactions] = useState<TransactionItem[]>(MOCK_TRANSACTIONS)
   const [invoices] = useState<InvoiceItem[]>(MOCK_INVOICES)
   const [refunds, setRefunds] = useState<RefundItem[]>(MOCK_REFUNDS)
+  const [disputes, setDisputes] = useState<DisputeItem[]>(MOCK_DISPUTES)
+  const [accounts, setAccounts] = useState<WithdrawalAccountItem[]>(MOCK_ACCOUNTS)
 
   // Modals state
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionItem | null>(null)
@@ -42,6 +53,12 @@ export const Payments: React.FC = () => {
 
   const [selectedRefund, setSelectedRefund] = useState<RefundItem | null>(null)
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false)
+
+  const [selectedDispute, setSelectedDispute] = useState<DisputeItem | null>(null)
+  const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false)
+
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false)
+  const [isManageAccountsModalOpen, setIsManageAccountsModalOpen] = useState(false)
 
   // Handlers
   const handleViewTransaction = (item: TransactionItem) => {
@@ -57,6 +74,11 @@ export const Payments: React.FC = () => {
   const handleViewRefund = (item: RefundItem) => {
     setSelectedRefund(item)
     setIsRefundModalOpen(true)
+  }
+
+  const handleViewDispute = (item: DisputeItem) => {
+    setSelectedDispute(item)
+    setIsDisputeModalOpen(true)
   }
 
   const handleApproveRefund = (refundId: string) => {
@@ -79,6 +101,40 @@ export const Payments: React.FC = () => {
           : r
       )
     )
+  }
+
+  const handleResolveDispute = (disputeId: string, notes: string) => {
+    const today = new Date().toISOString().split('T')[0]
+    setDisputes((prev) =>
+      prev.map((d) =>
+        d.id === disputeId
+          ? { ...d, status: 'Resolved', resolvedDate: today, resolutionNotes: notes || 'Dispute resolved by admin' }
+          : d
+      )
+    )
+  }
+
+  const handleRejectDispute = (disputeId: string, notes: string) => {
+    const today = new Date().toISOString().split('T')[0]
+    setDisputes((prev) =>
+      prev.map((d) =>
+        d.id === disputeId
+          ? { ...d, status: 'Resolved', resolvedDate: today, resolutionNotes: notes || 'Dispute rejected by admin' }
+          : d
+      )
+    )
+  }
+
+  const handleAddAccount = (newAcc: Omit<WithdrawalAccountItem, 'id'>) => {
+    const created: WithdrawalAccountItem = {
+      ...newAcc,
+      id: String(Date.now()),
+    }
+    setAccounts((prev) => [...prev, created])
+  }
+
+  const handleDeleteAccount = (id: string) => {
+    setAccounts((prev) => prev.filter((a) => a.id !== id))
   }
 
   // Filter transactions based on sub-filter pill
@@ -368,6 +424,82 @@ export const Payments: React.FC = () => {
     },
   ]
 
+  // DataTable columns for Disputes Tab
+  const disputeColumns: Column<DisputeItem>[] = [
+    {
+      key: 'disputeId',
+      header: 'Dispute ID',
+      sortable: true,
+      render: (row) => (
+        <span className="font-bold text-gray-900 text-xs sm:text-sm">
+          {row.disputeId}
+        </span>
+      ),
+    },
+    {
+      key: 'user',
+      header: 'User',
+      render: (row) => (
+        <span className="font-medium text-gray-900 text-xs sm:text-sm">
+          {row.user}
+        </span>
+      ),
+    },
+    {
+      key: 'paymentId',
+      header: 'Payment ID',
+      render: (row) => (
+        <span className="font-medium text-gray-800 text-xs sm:text-sm">
+          {row.paymentId}
+        </span>
+      ),
+    },
+    {
+      key: 'createdDate',
+      header: 'Created Date',
+      sortable: true,
+      render: (row) => (
+        <span className="text-gray-600 text-xs sm:text-sm font-medium">
+          {row.createdDate}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row) => {
+        let badgeStyle = 'bg-gray-100 text-gray-600 border-gray-200'
+        if (row.status === 'Resolved') {
+          badgeStyle = 'bg-emerald-50 text-emerald-600 border-emerald-100'
+        } else if (row.status === 'Open') {
+          badgeStyle = 'bg-amber-50 text-amber-600 border-amber-100'
+        }
+
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}`}
+          >
+            {row.status}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (row) => (
+        <button
+          type="button"
+          onClick={() => handleViewDispute(row)}
+          className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+          title="View Dispute Details"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ]
+
   return (
     <PostloginLayout
       title="Payment & Wallet Management"
@@ -380,6 +512,7 @@ export const Payments: React.FC = () => {
             variant="outline"
             size="md"
             leftIcon={<Landmark className="w-4 h-4 text-gray-700 shrink-0" />}
+            onClick={() => setIsManageAccountsModalOpen(true)}
             className="border-gray-300 text-gray-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-2xs hover:bg-gray-50 cursor-pointer bg-white"
           >
             Manage Accounts
@@ -388,8 +521,9 @@ export const Payments: React.FC = () => {
           <Button
             variant="primary"
             size="md"
-            leftIcon={<ArrowUpRight className="w-4 h-4 shrink-0" />}
-            className="bg-[#0052cc] hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            leftIcon={<ArrowUpRight className="w-4 h-4 shrink-0 text-white" />}
+            onClick={() => setIsWithdrawalModalOpen(true)}
+            className="bg-[#0052cc] hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-2xs transition-colors cursor-pointer border-none"
           >
             Request Withdrawal
           </Button>
@@ -572,15 +706,29 @@ export const Payments: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 4: Disputes Placeholder */}
+        {/* Tab 4: Disputes Content */}
         {activeTab === 'disputes' && (
-          <div className="bg-white border border-gray-200/90 rounded-2xl p-12 text-center text-gray-500 font-medium space-y-2">
-            <p className="text-base font-bold text-gray-800">
-              Dispute Management
-            </p>
-            <p className="text-xs text-gray-400 max-w-sm mx-auto">
-              No active payment disputes currently require resolution.
-            </p>
+          <div className="bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+                Payment Disputes
+              </h3>
+              <button
+                type="button"
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer border border-gray-200"
+                title="Export Payment Disputes"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+
+            <DataTable
+              columns={disputeColumns}
+              data={disputes}
+              keyExtractor={(row) => row.id}
+              currentPage={1}
+              totalPages={10}
+            />
           </div>
         )}
       </div>
@@ -606,6 +754,32 @@ export const Payments: React.FC = () => {
         refund={selectedRefund}
         onApprove={handleApproveRefund}
         onDecline={handleDeclineRefund}
+      />
+
+      {/* Dispute Details Modal */}
+      <DisputeDetailsModal
+        isOpen={isDisputeModalOpen}
+        onClose={() => setIsDisputeModalOpen(false)}
+        dispute={selectedDispute}
+        onResolve={handleResolveDispute}
+        onReject={handleRejectDispute}
+      />
+
+      {/* Request Withdrawal Modal */}
+      <RequestWithdrawalModal
+        isOpen={isWithdrawalModalOpen}
+        onClose={() => setIsWithdrawalModalOpen(false)}
+        availableBalance="$98,500"
+        accounts={accounts}
+      />
+
+      {/* Manage Withdrawal Accounts Modal */}
+      <ManageAccountsModal
+        isOpen={isManageAccountsModalOpen}
+        onClose={() => setIsManageAccountsModalOpen(false)}
+        accounts={accounts}
+        onAddAccount={handleAddAccount}
+        onDeleteAccount={handleDeleteAccount}
       />
     </PostloginLayout>
   )

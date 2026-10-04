@@ -35,6 +35,28 @@ export interface RefundItem {
   processedDate?: string
 }
 
+export interface DisputeItem {
+  id: string
+  disputeId: string
+  user: string
+  paymentId: string
+  serviceRequestId?: string
+  createdDate: string
+  resolvedDate?: string
+  status: 'Open' | 'Resolved'
+  reason: string
+  resolutionNotes?: string
+}
+
+export interface WithdrawalAccountItem {
+  id: string
+  name: string
+  bankName: string
+  accountType: 'Checking' | 'Savings'
+  last4: string
+  isDefault: boolean
+}
+
 export const MOCK_TRANSACTIONS: TransactionItem[] = [
   {
     id: '1',
@@ -310,3 +332,64 @@ export const MOCK_REFUNDS: RefundItem[] = [
     processedDate: '2024-12-16',
   },
 ]
+
+export const MOCK_DISPUTES: DisputeItem[] = [
+  {
+    id: '1',
+    disputeId: 'DIS001',
+    user: 'Alice Thompson',
+    paymentId: 'TXN001',
+    serviceRequestId: 'BK-10234',
+    createdDate: '2025-01-10',
+    status: 'Open',
+    reason: 'Service quality did not match description',
+  },
+  {
+    id: '2',
+    disputeId: 'DIS002',
+    user: 'Bob Martinez',
+    paymentId: 'TXN008',
+    createdDate: '2024-12-18',
+    resolvedDate: '2024-12-20',
+    status: 'Resolved',
+    reason: 'Unauthorized charge on account',
+    resolutionNotes: 'Full refund issued to customer',
+  },
+  {
+    id: '3',
+    disputeId: 'DIS003',
+    user: 'Michael Brown',
+    paymentId: 'TXN025',
+    createdDate: '2025-01-15',
+    status: 'Open',
+    reason: 'Incorrect billing amount charged',
+  },
+]
+
+export const MOCK_ACCOUNTS: WithdrawalAccountItem[] = [
+  {
+    id: '1',
+    name: 'Business Operations Account',
+    bankName: 'Bank of America',
+    accountType: 'Checking',
+    last4: '1234',
+    isDefault: true,
+  },
+  {
+    id: '2',
+    name: 'Savings Reserve',
+    bankName: 'Chase Bank',
+    accountType: 'Savings',
+    last4: '5678',
+    isDefault: false,
+  },
+  {
+    id: '3',
+    name: 'Secondary Business Account',
+    bankName: 'Wells Fargo',
+    accountType: 'Checking',
+    last4: '9012',
+    isDefault: false,
+  },
+]
+
