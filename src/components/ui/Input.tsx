@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Calendar } from 'lucide-react'
 
 export type InputNumberRef = HTMLInputElement
 export type LabelPosition = 'above' | 'beside' | 'floating'
@@ -402,6 +402,27 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>((props
 
 NumberInput.displayName = 'NumberInput'
 
+export interface DateInputProps extends TextInputProps {
+  minDate?: string
+  maxDate?: string
+}
+
+export const DateInput = forwardRef<HTMLInputElement, DateInputProps>((props, ref) => {
+  const { minDate, maxDate, rightIcon, ...restProps } = props
+  return (
+    <TextInput
+      ref={ref}
+      type="date"
+      min={minDate}
+      max={maxDate}
+      rightIcon={rightIcon || <Calendar className="w-4 h-4 text-gray-400" />}
+      {...restProps}
+    />
+  )
+})
+
+DateInput.displayName = 'DateInput'
+
 export interface TextAreaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, BaseFieldProps {
   inputClassName?: string
   inputStyle?: React.CSSProperties
@@ -485,3 +506,4 @@ export const TextAreaInput = forwardRef<HTMLTextAreaElement, TextAreaInputProps>
 })
 
 TextAreaInput.displayName = 'TextAreaInput'
+

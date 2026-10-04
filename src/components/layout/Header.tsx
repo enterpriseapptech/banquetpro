@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Menu, Settings, Bell, Zap } from 'lucide-react'
 import { cn } from '@/utils'
 import { Button } from '@/components/ui/Button'
+import { NotificationCard } from './NotificationCard'
 
 export interface HeaderProps {
   title?: React.ReactNode
@@ -34,6 +35,8 @@ export const Header: React.FC<HeaderProps> = ({
   children,
 }) => {
   const navigate = useNavigate()
+  const [showNotifications, setShowNotifications] = useState(false)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSettings = () => {
     if (onSettingsClick) {
@@ -41,6 +44,17 @@ export const Header: React.FC<HeaderProps> = ({
     } else {
       navigate('/settings')
     }
+  }
+
+  const handleMouseEnter = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current)
+    setShowNotifications(true)
+  }
+
+  const handleMouseLeave = () => {
+    hoverTimer.current = setTimeout(() => {
+      setShowNotifications(false)
+    }, 150)
   }
 
   return (
@@ -110,17 +124,42 @@ export const Header: React.FC<HeaderProps> = ({
               <Settings className="w-4 h-4" />
             </button>
 
-            <button
-              type="button"
-              onClick={onNotificationClick}
-              className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer border border-gray-200 relative bg-white"
-              title="Notifications"
+            {/* Notification Dropdown Container */}
+            <div
+              className="relative"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
-              <Bell className="w-4 h-4" />
-              {unreadNotifications && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNotificationClick) {
+                    onNotificationClick()
+                  } else {
+                    setShowNotifications((prev) => !prev)
+                  }
+                }}
+                className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer border border-gray-200 relative bg-white"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadNotifications && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                )}
+              </button>
+
+              {/* Hover/Click Notification Card Popover */}
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 z-50">
+                  <NotificationCard
+                    onViewAll={() => {
+                      setShowNotifications(false)
+                      navigate('/notifications')
+                    }}
+                  />
+                </div>
               )}
-            </button>
+            </div>
           </>
         )}
       </div>

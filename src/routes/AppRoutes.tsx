@@ -12,6 +12,8 @@ const ForgotPassword = lazy(() => import('../pages/prelogin/ForgotPassword'))
 const VerifyEmail = lazy(() => import('../pages/prelogin/VerifyEmail'))
 const ResetPassword = lazy(() => import('../pages/prelogin/ResetPassword'))
 const Dashboard = lazy(() => import('../pages/postlogin/Dashboard'))
+const Subscriptions = lazy(() => import('../pages/postlogin/Subscriptions'))
+const Payments = lazy(() => import('../pages/postlogin/Payments'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 
 export function AppRoutes() {
@@ -63,6 +65,14 @@ export function AppRoutes() {
             <Route
               path="/dashboard"
               element={<Dashboard />}
+            />
+            <Route
+              path="/subscriptions"
+              element={<Subscriptions />}
+            />
+            <Route
+              path="/payments"
+              element={<Payments />}
             />
             <Route
               path="/prelogin/signup"
