@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Landmark, Plus, Edit2, Trash2 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { WithdrawalAccountItem } from '@/utils/paymentsData'
 import { AddAccountModal } from './AddAccountModal'
 
@@ -21,6 +22,7 @@ export const ManageAccountsModal: React.FC<ManageAccountsModalProps> = ({
   onDeleteAccount,
 }) => {
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState<WithdrawalAccountItem | null>(null)
 
   const handleSaveNewAccount = (acc: Omit<WithdrawalAccountItem, 'id'>) => {
     if (onAddAccount) {
@@ -98,7 +100,7 @@ export const ManageAccountsModal: React.FC<ManageAccountsModalProps> = ({
                     type="button"
                     variant="ghost"
                     size="xs"
-                    onClick={() => onDeleteAccount && onDeleteAccount(acc.id)}
+                    onClick={() => setDeletingAccount(acc)}
                     className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg cursor-pointer"
                     title="Delete Account"
                   >
@@ -134,6 +136,17 @@ export const ManageAccountsModal: React.FC<ManageAccountsModalProps> = ({
         isOpen={isAddAccountModalOpen}
         onClose={() => setIsAddAccountModalOpen(false)}
         onAddAccount={handleSaveNewAccount}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deletingAccount)}
+        onClose={() => setDeletingAccount(null)}
+        onConfirm={() => {
+          if (deletingAccount && onDeleteAccount) onDeleteAccount(deletingAccount.id)
+        }}
+        title="Delete Account"
+        message={<>Are you sure you want to delete "{deletingAccount?.name}"? This action cannot be undone.</>}
+        confirmText="Delete"
       />
     </>
   )

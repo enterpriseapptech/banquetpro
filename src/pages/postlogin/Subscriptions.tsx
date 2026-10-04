@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Column } from '@/components/ui/DataTable'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { PostloginLayout } from '@/layouts/PostloginLayout'
 import {
   SubscriptionPlan,
@@ -42,6 +43,9 @@ export const Subscriptions: React.FC = () => {
   const [isChangePlanOpen, setIsChangePlanOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<SubscribedUser | null>(null)
 
+  const [deletingPlan, setDeletingPlan] = useState<SubscriptionPlan | null>(null)
+  const [isDeletePlanOpen, setIsDeletePlanOpen] = useState(false)
+
   const handleCreateNewPlan = () => {
     setEditingPlan(null)
     setIsFormModalOpen(true)
@@ -68,9 +72,17 @@ export const Subscriptions: React.FC = () => {
   }
 
   const handleDeletePlan = (planId: string) => {
-    if (window.confirm('Are you sure you want to delete this subscription plan?')) {
-      setPlans((prev) => prev.filter((p) => p.id !== planId))
+    const plan = plans.find((p) => p.id === planId)
+    if (!plan) return
+    setDeletingPlan(plan)
+    setIsDeletePlanOpen(true)
+  }
+
+  const handleConfirmDeletePlan = () => {
+    if (deletingPlan) {
+      setPlans((prev) => prev.filter((p) => p.id !== deletingPlan.id))
     }
+    setDeletingPlan(null)
   }
 
   const handleSavePlan = (
@@ -578,6 +590,15 @@ export const Subscriptions: React.FC = () => {
         onClose={() => setIsChangePlanOpen(false)}
         onSubmit={handleSaveUserPlan}
         user={editingUser}
+      />
+
+      <ConfirmModal
+        isOpen={isDeletePlanOpen}
+        onClose={() => setIsDeletePlanOpen(false)}
+        onConfirm={handleConfirmDeletePlan}
+        title="Delete Subscription Plan"
+        message={<>Are you sure you want to delete "{deletingPlan?.name}"? This action cannot be undone.</>}
+        confirmText="Delete"
       />
     </PostloginLayout>
   )

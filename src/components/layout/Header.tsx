@@ -101,10 +101,9 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-4">
-        {actions !== undefined ? (
-          actions
-        ) : (
-          <>
+        {actions}
+
+        <>
             <Button
               variant="outline"
               size="md"
@@ -161,7 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           </>
-        )}
       </div>
     </header>
   )

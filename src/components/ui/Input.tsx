@@ -423,6 +423,118 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>((props, re
 
 DateInput.displayName = 'DateInput'
 
+export interface SelectOption {
+  label: string
+  value: string
+}
+
+export interface SelectInputProps
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
+    BaseFieldProps {
+  options: SelectOption[]
+  placeholder?: string
+  size?: 'small' | 'middle' | 'large'
+  inputClassName?: string
+  inputStyle?: React.CSSProperties
+}
+
+export const SelectInput = forwardRef<HTMLSelectElement, SelectInputProps>((props, ref) => {
+  const {
+    id,
+    label,
+    labelPosition,
+    required,
+    requiredIndicator,
+    hideLabel,
+    helperText,
+    error,
+    errorMessage,
+    successMessage,
+    warningMessage,
+    containerClassName,
+    containerStyle,
+    labelClassName,
+    labelStyle,
+    errorClassName,
+    errorStyle,
+    helperTextClassName,
+    helperTextStyle,
+    renderError,
+    renderHelperText,
+    testID,
+    options,
+    placeholder,
+    size = 'middle',
+    className = '',
+    inputClassName = '',
+    inputStyle,
+    disabled,
+    ...restProps
+  } = props
+
+  const hasError = Boolean(error && errorMessage) || typeof error === 'string'
+
+  return (
+    <FieldWrapper
+      id={id}
+      label={label}
+      labelPosition={labelPosition}
+      required={required}
+      requiredIndicator={requiredIndicator}
+      hideLabel={hideLabel}
+      helperText={helperText}
+      error={error}
+      errorMessage={errorMessage}
+      successMessage={successMessage}
+      warningMessage={warningMessage}
+      containerClassName={containerClassName}
+      containerStyle={containerStyle}
+      labelClassName={labelClassName}
+      labelStyle={labelStyle}
+      errorClassName={errorClassName}
+      errorStyle={errorStyle}
+      helperTextClassName={helperTextClassName}
+      helperTextStyle={helperTextStyle}
+      renderError={renderError}
+      renderHelperText={renderHelperText}
+    >
+      <select
+        ref={ref}
+        id={id}
+        disabled={disabled}
+        className={`w-full text-sm font-medium text-gray-900 bg-white border rounded-lg outline-none transition-all app-input cursor-pointer ${
+          size === 'small' ? 'py-1.5' : size === 'large' ? 'py-3' : 'py-2.5'
+        } ${
+          hasError
+            ? 'border-red-500 text-red-600 focus:border-red-500'
+            : 'border-gray-200 focus:border-[#D6BBFB]'
+        } ${inputClassName} ${className}`}
+        style={{
+          border: hasError ? '1px solid #EF4444' : '1px solid #E4E7EC',
+          paddingLeft: '14px',
+          paddingRight: '14px',
+          ...inputStyle,
+        }}
+        data-testid={testID}
+        {...restProps}
+      >
+        {placeholder && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </FieldWrapper>
+  )
+})
+
+SelectInput.displayName = 'SelectInput'
+
 export interface TextAreaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, BaseFieldProps {
   inputClassName?: string
   inputStyle?: React.CSSProperties
