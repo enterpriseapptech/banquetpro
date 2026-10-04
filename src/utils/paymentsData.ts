@@ -11,6 +11,30 @@ export interface TransactionItem {
   paymentMethod?: string
 }
 
+export interface InvoiceItem {
+  id: string
+  invoiceRef: string
+  user: string
+  relatedTo: string
+  amount: string
+  dueDate: string
+  status: 'Paid' | 'Pending' | 'Overdue' | 'Partially Paid'
+  paymentsLinked: string
+  createdAt?: string
+}
+
+export interface RefundItem {
+  id: string
+  refundId: string
+  paymentRef: string
+  requestedBy: string
+  amount: string
+  requestDate: string
+  status: 'Requested' | 'Approved' | 'Processing' | 'Declined'
+  reason: string
+  processedDate?: string
+}
+
 export const MOCK_TRANSACTIONS: TransactionItem[] = [
   {
     id: '1',
@@ -191,5 +215,98 @@ export const MOCK_TRANSACTIONS: TransactionItem[] = [
     relatedTo: 'Riverside Convention Center',
     description: 'Annual Enterprise Plan subscription fee',
     paymentMethod: 'Bank Transfer',
+  },
+]
+
+export const MOCK_INVOICES: InvoiceItem[] = [
+  {
+    id: '1',
+    invoiceRef: 'INV-2025-001',
+    user: 'Alice Thompson',
+    relatedTo: 'Booking #BK-10234',
+    amount: 'USD 5,000',
+    dueDate: '2025-01-15',
+    status: 'Paid',
+    paymentsLinked: '1 linked',
+    createdAt: '2025-01-01',
+  },
+  {
+    id: '2',
+    invoiceRef: 'INV-2025-002',
+    user: 'Grand Ballroom Hall',
+    relatedTo: 'Subscription - Professional Plan',
+    amount: 'USD 99',
+    dueDate: '2025-02-01',
+    status: 'Pending',
+    paymentsLinked: '0 linked',
+    createdAt: '2025-01-01',
+  },
+  {
+    id: '3',
+    invoiceRef: 'INV-2024-089',
+    user: 'Bob Martinez',
+    relatedTo: 'Booking #BK-10099',
+    amount: 'USD 8,000',
+    dueDate: '2024-12-20',
+    status: 'Overdue',
+    paymentsLinked: '0 linked',
+    createdAt: '2024-12-01',
+  },
+  {
+    id: '4',
+    invoiceRef: 'INV-2025-003',
+    user: 'Alice Thompson',
+    relatedTo: 'Booking #BK-10245',
+    amount: 'USD 3,500',
+    dueDate: '2025-01-25',
+    status: 'Partially Paid',
+    paymentsLinked: '1 linked',
+    createdAt: '2025-01-10',
+  },
+]
+
+export const MOCK_REFUNDS: RefundItem[] = [
+  {
+    id: '1',
+    refundId: 'REF001',
+    paymentRef: 'TXN004',
+    requestedBy: 'Alice Thompson',
+    amount: 'USD 500',
+    requestDate: '2024-12-28',
+    status: 'Requested',
+    reason: 'Event cancelled by organizer',
+  },
+  {
+    id: '2',
+    refundId: 'REF002',
+    paymentRef: 'TXN015',
+    requestedBy: 'Bob Martinez',
+    amount: 'USD 1,200',
+    requestDate: '2024-12-20',
+    status: 'Approved',
+    reason: 'Service not provided as agreed',
+    processedDate: '2024-12-22',
+  },
+  {
+    id: '3',
+    refundId: 'REF003',
+    paymentRef: 'TXN022',
+    requestedBy: 'Sarah Johnson',
+    amount: 'USD 750',
+    requestDate: '2025-01-10',
+    status: 'Processing',
+    reason: 'Double charge error',
+    processedDate: '2025-01-11',
+  },
+  {
+    id: '4',
+    refundId: 'REF004',
+    paymentRef: 'TXN018',
+    requestedBy: 'Michael Brown',
+    amount: 'USD 300',
+    requestDate: '2024-12-15',
+    status: 'Declined',
+    reason: 'Outside cancellation window policy',
+    processedDate: '2024-12-16',
   },
 ]

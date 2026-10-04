@@ -12,19 +12,73 @@ import { Button } from '@/components/ui/Button'
 import { SummaryCard } from '@/components/ui/SummaryCard'
 import { DataTable, Column } from '@/components/ui/DataTable'
 import { PostloginLayout } from '@/layouts/PostloginLayout'
-import { TransactionItem, MOCK_TRANSACTIONS } from '@/utils/paymentsData'
+import {
+  TransactionItem,
+  InvoiceItem,
+  RefundItem,
+  MOCK_TRANSACTIONS,
+  MOCK_INVOICES,
+  MOCK_REFUNDS,
+} from '@/utils/paymentsData'
 import { TransactionDetailsModal } from '@/components/payments/TransactionDetailsModal'
+import { InvoiceDetailsModal } from '@/components/payments/InvoiceDetailsModal'
+import { RefundDetailsModal } from '@/components/payments/RefundDetailsModal'
 
 export const Payments: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'transactions' | 'invoices' | 'refunds' | 'disputes'>('transactions')
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Completed' | 'Failed'>('All')
-  const [transactions] = useState<TransactionItem[]>(MOCK_TRANSACTIONS)
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionItem | null>(null)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
 
+  // Datasets state
+  const [transactions] = useState<TransactionItem[]>(MOCK_TRANSACTIONS)
+  const [invoices] = useState<InvoiceItem[]>(MOCK_INVOICES)
+  const [refunds, setRefunds] = useState<RefundItem[]>(MOCK_REFUNDS)
+
+  // Modals state
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionItem | null>(null)
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
+
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null)
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
+
+  const [selectedRefund, setSelectedRefund] = useState<RefundItem | null>(null)
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false)
+
+  // Handlers
   const handleViewTransaction = (item: TransactionItem) => {
     setSelectedTransaction(item)
-    setIsDetailsModalOpen(true)
+    setIsTransactionModalOpen(true)
+  }
+
+  const handleViewInvoice = (item: InvoiceItem) => {
+    setSelectedInvoice(item)
+    setIsInvoiceModalOpen(true)
+  }
+
+  const handleViewRefund = (item: RefundItem) => {
+    setSelectedRefund(item)
+    setIsRefundModalOpen(true)
+  }
+
+  const handleApproveRefund = (refundId: string) => {
+    const today = new Date().toISOString().split('T')[0]
+    setRefunds((prev) =>
+      prev.map((r) =>
+        r.id === refundId
+          ? { ...r, status: 'Approved', processedDate: today }
+          : r
+      )
+    )
+  }
+
+  const handleDeclineRefund = (refundId: string) => {
+    const today = new Date().toISOString().split('T')[0]
+    setRefunds((prev) =>
+      prev.map((r) =>
+        r.id === refundId
+          ? { ...r, status: 'Declined', processedDate: today }
+          : r
+      )
+    )
   }
 
   // Filter transactions based on sub-filter pill
@@ -33,7 +87,7 @@ export const Payments: React.FC = () => {
     return t.status === statusFilter
   })
 
-  // DataTable Column definitions matching the screenshot
+  // DataTable columns for Transactions Tab
   const transactionColumns: Column<TransactionItem>[] = [
     {
       key: 'transactionId',
@@ -118,6 +172,195 @@ export const Payments: React.FC = () => {
           onClick={() => handleViewTransaction(row)}
           className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
           title="View Transaction Details"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ]
+
+  // DataTable columns for Invoices Tab
+  const invoiceColumns: Column<InvoiceItem>[] = [
+    {
+      key: 'invoiceRef',
+      header: 'Invoice Ref',
+      sortable: true,
+      render: (row) => (
+        <span className="font-bold text-gray-900 text-xs sm:text-sm">
+          {row.invoiceRef}
+        </span>
+      ),
+    },
+    {
+      key: 'user',
+      header: 'User',
+      render: (row) => (
+        <span className="font-medium text-gray-900 text-xs sm:text-sm">
+          {row.user}
+        </span>
+      ),
+    },
+    {
+      key: 'relatedTo',
+      header: 'Related To',
+      render: (row) => (
+        <span className="font-medium text-gray-700 text-xs sm:text-sm">
+          {row.relatedTo}
+        </span>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      sortable: true,
+      render: (row) => (
+        <span className="font-extrabold text-gray-900 text-xs sm:text-sm">
+          {row.amount}
+        </span>
+      ),
+    },
+    {
+      key: 'dueDate',
+      header: 'Due Date',
+      sortable: true,
+      render: (row) => (
+        <span className="text-gray-600 text-xs sm:text-sm font-medium">
+          {row.dueDate}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row) => {
+        let badgeStyle = 'bg-gray-100 text-gray-600 border-gray-200'
+        if (row.status === 'Paid') {
+          badgeStyle = 'bg-emerald-50 text-emerald-600 border-emerald-100'
+        } else if (row.status === 'Pending') {
+          badgeStyle = 'bg-amber-50 text-amber-600 border-amber-100'
+        } else if (row.status === 'Overdue') {
+          badgeStyle = 'bg-rose-50 text-rose-600 border-rose-100'
+        } else if (row.status === 'Partially Paid') {
+          badgeStyle = 'bg-blue-50 text-blue-600 border-blue-100'
+        }
+
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}`}
+          >
+            {row.status}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'paymentsLinked',
+      header: 'Payments',
+      render: (row) => (
+        <span className="text-gray-600 text-xs sm:text-sm font-medium">
+          {row.paymentsLinked}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (row) => (
+        <button
+          type="button"
+          onClick={() => handleViewInvoice(row)}
+          className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+          title="View Invoice Details"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ]
+
+  // DataTable columns for Refunds Tab
+  const refundColumns: Column<RefundItem>[] = [
+    {
+      key: 'refundId',
+      header: 'Refund ID',
+      sortable: true,
+      render: (row) => (
+        <span className="font-bold text-gray-900 text-xs sm:text-sm">
+          {row.refundId}
+        </span>
+      ),
+    },
+    {
+      key: 'paymentRef',
+      header: 'Payment Ref',
+      render: (row) => (
+        <span className="font-medium text-gray-800 text-xs sm:text-sm">
+          {row.paymentRef}
+        </span>
+      ),
+    },
+    {
+      key: 'requestedBy',
+      header: 'Requested By',
+      render: (row) => (
+        <span className="font-medium text-gray-900 text-xs sm:text-sm">
+          {row.requestedBy}
+        </span>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      sortable: true,
+      render: (row) => (
+        <span className="font-extrabold text-gray-900 text-xs sm:text-sm">
+          {row.amount}
+        </span>
+      ),
+    },
+    {
+      key: 'requestDate',
+      header: 'Request Date',
+      sortable: true,
+      render: (row) => (
+        <span className="text-gray-600 text-xs sm:text-sm font-medium">
+          {row.requestDate}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row) => {
+        let badgeStyle = 'bg-gray-100 text-gray-600 border-gray-200'
+        if (row.status === 'Approved') {
+          badgeStyle = 'bg-emerald-50 text-emerald-600 border-emerald-100'
+        } else if (row.status === 'Requested') {
+          badgeStyle = 'bg-amber-50 text-amber-600 border-amber-100'
+        } else if (row.status === 'Processing') {
+          badgeStyle = 'bg-blue-50 text-blue-600 border-blue-100'
+        } else if (row.status === 'Declined') {
+          badgeStyle = 'bg-rose-50 text-rose-600 border-rose-100'
+        }
+
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}`}
+          >
+            {row.status}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (row) => (
+        <button
+          type="button"
+          onClick={() => handleViewRefund(row)}
+          className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+          title="View Refund Details"
         >
           <Eye className="w-4 h-4" />
         </button>
@@ -237,7 +480,6 @@ export const Payments: React.FC = () => {
         {/* Tab 1: Transactions Content */}
         {activeTab === 'transactions' && (
           <div className="bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-5">
-            {/* Header & Export Icon */}
             <div className="flex items-center justify-between gap-4">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
                 Transaction History
@@ -251,7 +493,6 @@ export const Payments: React.FC = () => {
               </button>
             </div>
 
-            {/* Sub-Filter Status Pills */}
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin">
               {(['All', 'Pending', 'Completed', 'Failed'] as const).map((status) => (
                 <button
@@ -269,7 +510,6 @@ export const Payments: React.FC = () => {
               ))}
             </div>
 
-            {/* Transactions DataTable */}
             <DataTable
               columns={transactionColumns}
               data={filteredTransactions}
@@ -280,14 +520,66 @@ export const Payments: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 2, 3, 4 Placeholders */}
-        {activeTab !== 'transactions' && (
-          <div className="bg-white border border-gray-200/90 rounded-2xl p-12 text-center text-gray-500 font-medium">
-            <p className="text-base font-semibold text-gray-800 capitalize">
-              {activeTab} Management
+        {/* Tab 2: Invoices Content */}
+        {activeTab === 'invoices' && (
+          <div className="bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+                Invoice Management
+              </h3>
+              <button
+                type="button"
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer border border-gray-200"
+                title="Export Invoices"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+
+            <DataTable
+              columns={invoiceColumns}
+              data={invoices}
+              keyExtractor={(row) => row.id}
+              currentPage={1}
+              totalPages={10}
+            />
+          </div>
+        )}
+
+        {/* Tab 3: Refunds Content */}
+        {activeTab === 'refunds' && (
+          <div className="bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+                Refund Requests
+              </h3>
+              <button
+                type="button"
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer border border-gray-200"
+                title="Export Refund Requests"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+
+            <DataTable
+              columns={refundColumns}
+              data={refunds}
+              keyExtractor={(row) => row.id}
+              currentPage={1}
+              totalPages={10}
+            />
+          </div>
+        )}
+
+        {/* Tab 4: Disputes Placeholder */}
+        {activeTab === 'disputes' && (
+          <div className="bg-white border border-gray-200/90 rounded-2xl p-12 text-center text-gray-500 font-medium space-y-2">
+            <p className="text-base font-bold text-gray-800">
+              Dispute Management
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Select the Transactions tab to view full platform transaction history.
+            <p className="text-xs text-gray-400 max-w-sm mx-auto">
+              No active payment disputes currently require resolution.
             </p>
           </div>
         )}
@@ -295,9 +587,25 @@ export const Payments: React.FC = () => {
 
       {/* Transaction Details Modal */}
       <TransactionDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
+        isOpen={isTransactionModalOpen}
+        onClose={() => setIsTransactionModalOpen(false)}
         transaction={selectedTransaction}
+      />
+
+      {/* Invoice Details Modal */}
+      <InvoiceDetailsModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        invoice={selectedInvoice}
+      />
+
+      {/* Refund Details Modal */}
+      <RefundDetailsModal
+        isOpen={isRefundModalOpen}
+        onClose={() => setIsRefundModalOpen(false)}
+        refund={selectedRefund}
+        onApprove={handleApproveRefund}
+        onDecline={handleDeclineRefund}
       />
     </PostloginLayout>
   )
