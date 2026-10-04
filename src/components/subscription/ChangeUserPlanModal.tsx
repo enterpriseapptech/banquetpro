@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { Modal } from '@/components/ui/Modal'
-import { TextInput } from '@/components/ui/Input'
+import { TextInput, DateInput } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { SubscribedUser } from '@/utils/subscriptionData'
 
@@ -112,15 +112,13 @@ export const ChangeUserPlanModal: React.FC<ChangeUserPlanModalProps> = ({
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextInput
+          <DateInput
             label="Start Date"
-            placeholder="e.g. 2025-01-01"
             error={errors.startDate?.message}
             {...register('startDate')}
           />
-          <TextInput
+          <DateInput
             label="Renewal Date"
-            placeholder="e.g. 2025-02-01"
             error={errors.renewalDate?.message}
             {...register('renewalDate')}
           />
