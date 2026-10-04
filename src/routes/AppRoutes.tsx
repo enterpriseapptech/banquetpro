@@ -16,6 +16,8 @@ const Subscriptions = lazy(() => import('../pages/postlogin/Subscriptions'))
 const Payments = lazy(() => import('../pages/postlogin/Payments'))
 const Fees = lazy(() => import('../pages/postlogin/Fees'))
 const Providers = lazy(() => import('../pages/postlogin/Providers'))
+const Kyc = lazy(() => import('../pages/postlogin/Kyc'))
+const Support = lazy(() => import('../pages/postlogin/Support'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 
 export function AppRoutes() {
@@ -83,6 +85,14 @@ export function AppRoutes() {
             <Route
               path="/providers"
               element={<Providers />}
+            />
+            <Route
+              path="/kyc"
+              element={<Kyc />}
+            />
+            <Route
+              path="/support"
+              element={<Support />}
             />
             <Route
               path="/prelogin/signup"
